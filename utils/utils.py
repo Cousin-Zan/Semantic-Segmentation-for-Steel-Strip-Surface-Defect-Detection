@@ -1,8 +1,11 @@
+#!/usr/bin/env python
+#coding:utf-8
 """
 The implementation of some utils.
 
 @Author: Yang Lu
-@Github: https://github.com/luyanger1799
+@Rewrite: Zan Peng
+@Github: https://github.com/Cousin-Zan
 @Project: https://github.com/luyanger1799/amazing-semantic-segmentation
 
 """
@@ -13,41 +16,57 @@ import cv2
 
 
 def load_image(name):
+    ''' open the image and return an array'''
     img = Image.open(name)
     return np.array(img)
 
 
 def resize_image(image, label, target_size=None):
+    ''' resize the image and label with target size, return resized image and label'''
     if target_size is not None:
+        # if user inputs target size, image will be resize with target size
+        # and label will will be resize with target size by using inter nearest 
         image = cv2.resize(image, dsize=target_size[::-1])
         label = cv2.resize(label, dsize=target_size[::-1], interpolation=cv2.INTER_NEAREST)
     return image, label
 
 
 def random_crop(image, label, crop_size):
+    '''random crop image and label with crop size, return cropped image and label'''
     h, w = image.shape[0:2]
     crop_h, crop_w = crop_size
+    # get origin image and crop size height and weight
 
     if h < crop_h or w < crop_w:
+        # if origin image height < crop height or origin image weight < crop weight,
+        # origin image will be resize with max of origin image height and crop height,
+        # the weight is same as before
         image = cv2.resize(image, (max(w, crop_w), max(h, crop_h)))
         label = cv2.resize(label, (max(w, crop_w), max(h, crop_h)), interpolation=cv2.INTER_NEAREST)
+        # Attention: the label will be resize by using inter nearest
 
-    h, w = image.shape[0:2]
     h_beg = np.random.randint(h - crop_h)
+    # get a number which is in [0, h-crop_h)
     w_beg = np.random.randint(w - crop_w)
+    # get a number which is in [0, w-crop_w)
 
     cropped_image = image[h_beg:h_beg + crop_h, w_beg:w_beg + crop_w]
     cropped_label = label[h_beg:h_beg + crop_h, w_beg:w_beg + crop_w]
+    # crop image and label
 
     return cropped_image, cropped_label
 
 
 def random_zoom(image, label, zoom_range):
+    '''random zoom image and label with zoom_range, return zoomed image and label'''
     if np.ndim(label) == 2:
+        # if label has two dims, it will be expand a dim.[h,w]=>[h,w,1] 
         label = np.expand_dims(label, axis=-1)
     assert np.ndim(label) == 3
+    # default label has three dims
 
     if np.isscalar(zoom_range):
+        # zoom_range is or not a scalar
         zx, zy = np.random.uniform(1 - zoom_range, 1 + zoom_range, 2)
     elif len(zoom_range) == 2:
         zx, zy = np.random.uniform(zoom_range[0], zoom_range[1], 2)
@@ -63,6 +82,7 @@ def random_zoom(image, label, zoom_range):
 
 
 def random_brightness(image, label, brightness_range):
+    '''random brightness image label with brightness_range, return image and label'''
     if np.ndim(label) == 2:
         label = np.expand_dims(label, axis=-1)
     assert np.ndim(label) == 3
@@ -79,6 +99,7 @@ def random_brightness(image, label, brightness_range):
 
 
 def random_horizontal_flip(image, label, h_flip):
+    '''random flip image and label on horizontal, return image and label'''
     if h_flip:
         image = cv2.flip(image, 1)
         label = cv2.flip(label, 1)
@@ -86,6 +107,7 @@ def random_horizontal_flip(image, label, h_flip):
 
 
 def random_vertical_flip(image, label, v_flip):
+    '''random flip image and label on vertical, return image and label'''
     if v_flip:
         image = cv2.flip(image, 0)
         label = cv2.flip(label, 0)
@@ -93,6 +115,7 @@ def random_vertical_flip(image, label, v_flip):
 
 
 def random_rotation(image, label, rotation_range):
+    '''random rotation image and label with rotation_range, return image and label'''
     if np.ndim(label) == 2:
         label = np.expand_dims(label, axis=-1)
     assert np.ndim(label) == 3
@@ -106,6 +129,7 @@ def random_rotation(image, label, rotation_range):
 
 
 def random_channel_shift(image, label, channel_shift_range):
+    '''shift the channel with channel_shift_range, return image and label'''
     if np.ndim(label) == 2:
         label = np.expand_dims(label, axis=-1)
     assert np.ndim(label) == 3
@@ -117,6 +141,7 @@ def random_channel_shift(image, label, channel_shift_range):
 
 
 def one_hot(label, num_classes):
+    '''tranform the label to one_hot encoded, return heatmap'''
     if np.ndim(label) == 3:
         label = np.squeeze(label, axis=-1)
     assert np.ndim(label) == 2
@@ -128,6 +153,7 @@ def one_hot(label, num_classes):
 
 
 def decode_one_hot(one_hot_map):
+    '''decode the heatmap, return the label'''
     return np.argmax(one_hot_map, axis=-1)
 
 

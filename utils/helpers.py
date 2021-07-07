@@ -2,7 +2,8 @@
 The implementation of some helpers.
 
 @Author: Yang Lu
-@Github: https://github.com/luyanger1799
+@Rewrite: Zan Peng
+@Github: https://github.com/Cousin-Zan
 @Project: https://github.com/luyanger1799/amazing-semantic-segmentation
 
 """
@@ -123,5 +124,11 @@ def get_evaluated_classes(file_path):
 def color_encode(image, color_values):
     color_codes = np.array(color_values)
     x = color_codes[image.astype(int)]
+
+    return x
+
+def color_decode(image):
+    image = image / 255
+    x = image[:, :, 0] + 2 * image[:, :, 1] + 3 * image[:, :, 2]
 
     return x

@@ -2,7 +2,8 @@
 The file defines the predict process of a single RGB image.
 
 @Author: Yang Lu
-@Github: https://github.com/luyanger1799
+@Rewrite: Zan Peng
+@Github: https://github.com/Cousin-Zan
 @Project: https://github.com/luyanger1799/amazing-semantic-segmentation
 
 """
@@ -81,7 +82,7 @@ else:
 
 # get color info
 if args.csv_file is None:
-    csv_file = os.path.join('CamVid', 'class_dict.csv')
+    csv_file = os.path.join('SD', 'class_dict.csv')
 else:
     csv_file = args.csv_file
 
@@ -94,6 +95,11 @@ for i, name in enumerate(image_names):
     image = cv2.resize(load_image(name),
                        dsize=(args.crop_width, args.crop_height))
     image = imagenet_utils.preprocess_input(image.astype(np.float32), data_format='channels_last', mode='torch')
+
+    if np.ndim(image) == 2:
+        # if image has two dims, it will be expand a dim.[h,w]=>[h,w,1], in order to broadcast
+        image = np.expand_dims(image, axis=-1)
+    assert np.ndim(image) == 3
 
     # image processing
     if np.ndim(image) == 3:

@@ -2,7 +2,8 @@
 The model builder to build different semantic segmentation models.
 
 @Author: Yang Lu
-@Github: https://github.com/luyanger1799
+@Rewrite: Zan Peng
+@Github: https://github.com/Cousin-Zan
 @Project: https://github.com/luyanger1799/amazing-semantic-segmentation
 
 """
@@ -31,6 +32,6 @@ def builder(num_classes, input_size=(256, 256), model='SegNet', base_model=None)
 
     net = models[model](num_classes, model, base_model)
 
-    inputs = layers.Input(shape=input_size+(3,))
+    inputs = layers.Input(shape=input_size+(1,))
 
     return net(inputs), net.get_base_model()

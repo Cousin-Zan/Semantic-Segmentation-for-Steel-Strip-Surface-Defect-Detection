@@ -2,7 +2,8 @@
 The implementation of Data Generator based on Tensorflow.
 
 @Author: Yang Lu
-@Github: https://github.com/luyanger1799
+@Rewrite: Zan Peng
+@Github: https://github.com/Cousin-Zan
 @Project: https://github.com/luyanger1799/amazing-semantic-segmentation
 
 """
@@ -38,8 +39,10 @@ class DataIterator(Iterator):
         super(DataIterator, self).__init__(num_images, batch_size, shuffle, seed)
 
     def _get_batches_of_transformed_samples(self, index_array):
-        batch_x = np.zeros(shape=(len(index_array),) + self.target_size + (3,))
+        batch_x = np.zeros(shape=(len(index_array),) + self.target_size + (1,))
+        # (bs, h, w, 1)
         batch_y = np.zeros(shape=(len(index_array),) + self.target_size + (self.num_classes,))
+        # (bs, h, w, num_classes)
 
         for i, idx in enumerate(index_array):
             image, label = load_image(self.images_list[idx]), load_image(self.labels_list[idx])
@@ -71,9 +74,15 @@ class DataIterator(Iterator):
 
             image = imagenet_utils.preprocess_input(image.astype('float32'), data_format='channels_last',
                                                     mode='torch')
+            if np.ndim(image) == 2:
+                # if image has two dims, it will be expand a dim.[h,w]=>[h,w,1], in order to broadcast
+                image = np.expand_dims(image, axis=-1)
+            assert np.ndim(image) == 3
+
             label = one_hot(label, self.num_classes)
 
             batch_x[i], batch_y[i] = image, label
+            # get a pair of image and label
 
         return batch_x, batch_y
 
