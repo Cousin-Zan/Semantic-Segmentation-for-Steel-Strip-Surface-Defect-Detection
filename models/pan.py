@@ -36,10 +36,14 @@ class PAN(Network):
                           'ResNet101',
                           'ResNet152']:
             self.up_size = [(1, 1), (1, 1), (2, 2), (4, 4)]
-        elif base_model in ['DenseNet121',
+        elif base_model in ['DenseNet101',
+                            'DenseNet121',
+                            'DenseNet152',
                             'DenseNet169',
                             'DenseNet201',
                             'DenseNet264',
+                            'VovNet101',
+                            'VovNet152',
                             'Xception-DeepLab']:
             self.up_size = [(1, 1), (1, 1), (1, 1), (8, 8)]
         else:

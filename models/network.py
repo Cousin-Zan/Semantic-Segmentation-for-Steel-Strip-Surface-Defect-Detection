@@ -16,8 +16,10 @@ class Network(object):
             self.encoder = VGG(base_model, dilation=dilation)
         elif base_model in ['ResNet50', 'ResNet101', 'ResNet152']:
             self.encoder = ResNet(base_model, dilation=dilation)
-        elif base_model in ['DenseNet121', 'DenseNet169', 'DenseNet201', 'DenseNet264']:
+        elif base_model in ['DenseNet101', 'DenseNet121', 'DenseNet152', 'DenseNet169', 'DenseNet201', 'DenseNet264']:
             self.encoder = DenseNet(base_model, dilation=dilation)
+        elif base_model in ['VovNet101','VovNet152']:
+            self.encoder = VovNet(base_model, dilation=dilation)
         elif base_model in ['Xception', 'Xception-DeepLab']:
             self.encoder = Xception(base_model, dilation=dilation)
         elif base_model in ['MobileNetV1', 'MobileNetV2']:

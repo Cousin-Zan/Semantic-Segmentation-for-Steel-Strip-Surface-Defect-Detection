@@ -3,7 +3,8 @@ The implementation of ResNet50/101/152 based on Tensorflow.
 Some codes are based on official tensorflow source codes.
 
 @Author: Yang Lu
-@Github: https://github.com/luyanger1799
+@Rewrite: Zan Peng
+@Github: https://github.com/Cousin-Zan
 @Project: https://github.com/luyanger1799/amazing-semantic-segmentation
 
 """
@@ -164,7 +165,7 @@ class ResNet(object):
         dilation = self.dilation
 
         x = layers.ZeroPadding2D(padding=(3, 3), name='conv1_pad')(inputs)
-        x = layers.Conv2D(64, (7, 7),
+        x = layers.Conv2D(64, (3, 3),
                           strides=(2, 2),
                           padding='valid',
                           kernel_initializer='he_normal',
