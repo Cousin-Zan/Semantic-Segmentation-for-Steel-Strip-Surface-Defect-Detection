@@ -164,7 +164,7 @@ class ResNet(object):
 
         dilation = self.dilation
 
-        x = layers.ZeroPadding2D(padding=(3, 3), name='conv1_pad')(inputs)
+        x = layers.ZeroPadding2D(padding=(1, 1), name='conv1_pad')(inputs)
         x = layers.Conv2D(64, (3, 3),
                           strides=(2, 2),
                           padding='valid',
