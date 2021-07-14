@@ -27,7 +27,8 @@ class PAN(Network):
         base_model = 'ResNet50' if base_model is None else base_model
         assert version == 'PAN'
 
-        dilation = [2, 4]
+        dilation = [1, 1] 
+        #no use dilation
         if base_model in ['VGG16',
                           'VGG19',
                           'MobileNetV1',
@@ -35,17 +36,18 @@ class PAN(Network):
                           'ResNet50',
                           'ResNet101',
                           'ResNet152']:
-            self.up_size = [(1, 1), (1, 1), (2, 2), (4, 4)]
+            self.up_size = [(2, 2), (2, 2), (2, 2), (4, 4)]
         elif base_model in ['DenseNet101',
                             'DenseNet121',
                             'DenseNet152',
                             'DenseNet169',
                             'DenseNet201',
-                            'DenseNet264',
-                            'VovNet101',
-                            'VovNet152',
-                            'Xception-DeepLab']:
-            self.up_size = [(1, 1), (1, 1), (1, 1), (8, 8)]
+                            'DenseNet264']:
+            self.up_size = [(1, 1), (2, 2), (2, 2), (8, 8)]
+        elif base_model in ['VovNet101']:
+            self.up_size = [(2, 2), (2, 2), (2, 2), (4, 4)]
+        elif base_model in ['Xception-DeepLab']:
+            self.up_size = [(1, 1), (2, 2), (2, 2), (4, 4)]
         else:
             raise ValueError('The base model \'{model}\' is not '
                              'supported in PAN.'.format(model=base_model))

@@ -24,9 +24,9 @@ class DenseNet(object):
         :param kwargs: other parameters.
         """
         super(DenseNet, self).__init__(**kwargs)
-        params = {'DenseNet101': [4, 6, 33, 5],
+        params = {'DenseNet101': [6, 12, 15, 15],
                   'DenseNet121': [6, 12, 24, 16],
-                  'DenseNet152': [4, 12, 53, 5],
+                  'DenseNet152': [6, 12, 24, 32],
                   'DenseNet169': [6, 12, 32, 32],
                   'DenseNet201': [6, 12, 48, 32],
                   'DenseNet264': [6, 12, 64, 48]}
@@ -52,7 +52,7 @@ class DenseNet(object):
             output tensor for the block.
         """
         for i in range(blocks):
-            x = self._conv_block(x, 32, name=name + '_block' + str(i + 1), dilation=dilation)
+            x = self._conv_block(x, 48, name=name + '_block' + str(i + 1), dilation=dilation)
         return x
 
     def _transition_block(self, x, reduction, name, dilation=1):

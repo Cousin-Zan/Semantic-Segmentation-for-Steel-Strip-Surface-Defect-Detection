@@ -6,6 +6,7 @@ Some codes are based on official tensorflow source codes.
 @Github: https://github.com/Cousin-Zan
 
 """
+
 from utils.layers import Concatenate
 import tensorflow as tf
 
@@ -14,98 +15,113 @@ backend = tf.keras.backend
 
 
 class VovNet(object):
-    def __init__(self, version='VovNet101', dilation=None, **kwargs):
-        """
-        The implementation of VovNet based on Tensorflow.
-        :param version: 'VovNet101' or 'VovNet152'.
-        :param dilation: Whether to use dilation strategy.
-        :param kwargs: other parameters.
-        """
+    def __init__(self,
+                 version='VovNet101',
+                 **kwargs):
+
         super(VovNet, self).__init__(**kwargs)
-        params = {'VovNet101': [4, 6, 33, 5],
-                  'VovNet152': [4, 12, 53, 5]}
+        config_stage_ch = {'VovNet101': [128, 160, 192, 224]}
+        config_concat_ch = {'VovNet101': [256, 512, 768, 1024]}
+        block_per_stage = {'VovNet101': [1, 3, 9, 3]}
+        layer_per_block = {'VovNet101': 5}
         self.version = version
-        assert version in params
-        self.params = params[version]
+        assert version in config_stage_ch
+        assert version in config_concat_ch
+        assert version in block_per_stage
+        assert version in layer_per_block
+        self.config_stage_ch = config_stage_ch[version]
+        self.config_concat_ch = config_concat_ch[version]
+        self.block_per_stage = block_per_stage[version]
+        self.layer_per_block = layer_per_block[version]
 
-        if dilation is None:
-            self.dilation = [1, 1]
-        else:
-            self.dilation = dilation
-        assert len(self.dilation) == 2
-
-    def _osa_block(self, x, blocks, name, dilation=1):
-        """A osa block.
-
-        # Arguments
-            x: input tensor.
-            blocks: integer, the number of building blocks.
-            name: string, block label.
-
-        # Returns
-            output tensor for the block.
-        """
-        _, h, w, _ = backend.int_shape(x)
-        bn_axis = 3 if backend.image_data_format() == 'channels_last' else 1
-        osa = [x]
-        for i in range(blocks):
-            x = self._conv_block(x, 32, name=name + '_block' + str(i + 1), dilation=dilation)
-            osa.append(x)
-        osa_block = Concatenate(out_size=(h, w), axis=bn_axis, name=name + '_concat')(osa)
-        return osa_block
-
-    def _transition_block(self, x, reduction, name, dilation=1):
-        """A transition block.
-
-        # Arguments
-            x: input tensor.
-            reduction: float, compression rate at transition layers.
-            name: string, block label.
-
-        # Returns
-            output tensor for the block.
-        """
-        bn_axis = 3 if backend.image_data_format() == 'channels_last' else 1
-        x = layers.BatchNormalization(axis=bn_axis, epsilon=1.001e-5,
-                                      name=name + '_bn')(x)
-        x = layers.Activation('relu', name=name + '_relu')(x)
-        x = layers.Conv2D(int(backend.int_shape(x)[bn_axis] * reduction), 1,
-                          use_bias=False,
-                          name=name + '_conv',
-                          dilation_rate=dilation)(x)
-        if dilation == 1:
-            x = layers.AveragePooling2D(2, strides=2, name=name + '_pool')(x)
-        return x
-
-    def _conv_block(self, x, growth_rate, name, dilation=1):
-        """A building block for a osa block.
-
-        # Arguments
-            x: input tensor.
-            growth_rate: float, growth rate at osa layers.
-            name: string, block label.
-
-        # Returns
-            Output tensor for the block.
-        """
+    def _conv3x3(self, x, out_channels, model_name, postfix,
+                 stride=1, kernel_size=3, padding='same'):
+        """3x3 convolution with padding"""
 
         bn_axis = 3 if backend.image_data_format() == 'channels_last' else 1
+
+        # Conv-BN-ReLU
+        x1 = layers.Conv2D(out_channels, kernel_size=kernel_size,
+                           strides=stride,
+                           padding=padding,
+                           use_bias=False,
+                           name=model_name + postfix + '_conv0')(x)
         x1 = layers.BatchNormalization(axis=bn_axis,
                                        epsilon=1.001e-5,
-                                       name=name + '_0_bn')(x)
-        x1 = layers.Activation('relu', name=name + '_0_relu')(x1)
-        x1 = layers.Conv2D(4 * growth_rate, 1,
-                           use_bias=False,
-                           name=name + '_1_conv')(x1)
-        x1 = layers.BatchNormalization(axis=bn_axis, epsilon=1.001e-5,
-                                       name=name + '_1_bn')(x1)
-        x1 = layers.Activation('relu', name=name + '_1_relu')(x1)
-        x1 = layers.Conv2D(growth_rate, 3,
-                           padding='same',
-                           use_bias=False,
-                           name=name + '_2_conv',
-                           dilation_rate=dilation)(x1)
+                                       name=model_name + postfix + '_bn0')(x1)
+        x1 = layers.Activation(
+            'relu', name=model_name + postfix + '_relu0')(x1)
+
         return x1
+
+    def _conv1x1(self, x, out_channels, model_name, postfix,
+                 stride=1, kernel_size=1, padding='valid'):
+        """3x3 convolution with padding"""
+
+        bn_axis = 3 if backend.image_data_format() == 'channels_last' else 1
+
+        # Conv-BN-ReLU
+        x1 = layers.Conv2D(out_channels, kernel_size=kernel_size,
+                           strides=stride,
+                           padding=padding,
+                           use_bias=False,
+                           name=model_name + postfix + '_conv1')(x)
+        x1 = layers.BatchNormalization(axis=bn_axis,
+                                       epsilon=1.001e-5,
+                                       name=model_name + postfix + '_bn1')(x1)
+        x1 = layers.Activation(
+            'relu', name=model_name + postfix + '_relu1')(x1)
+
+        return x1
+
+    def _OSA_model(self, x,
+                   stage_ch,
+                   concat_ch,
+                   layer_per_block,
+                   module_name,
+                   identity=False):
+
+        identity_feat = x
+        output = []
+        output.append(x)
+        for i in range(layer_per_block):
+            x = self._conv3x3(x, stage_ch, module_name, str(i))
+            output.append(x)
+
+        x = tf.keras.layers.concatenate(output)
+        xt = self._conv1x1(x, concat_ch, module_name, '_concat_')
+
+        if identity:
+            xt = xt + identity_feat
+
+        return xt
+
+    def _OSA_stage(self,
+                   x,
+                   stage_ch,
+                   concat_ch,
+                   block_per_stage,
+                   layer_per_block,
+                   stage_num):
+        if not stage_num == 2:
+            x = layers.MaxPool2D(pool_size=3, strides=2, padding='same')(x)
+
+        module_name = f'OSA{stage_num}_1'
+        x = self._OSA_model(x,
+                            stage_ch,
+                            concat_ch,
+                            layer_per_block,
+                            module_name)
+
+        for i in range(block_per_stage-1):
+            module_name = f'OSA{stage_num}_{i+2}'
+            x = self._OSA_model(x,
+                                stage_ch,
+                                concat_ch,
+                                layer_per_block,
+                                module_name,
+                                identity=True)
+        return x
 
     def __call__(self, inputs, output_stages='c5', **kwargs):
         """
@@ -115,37 +131,49 @@ class VovNet(object):
         :param kwargs: other parameters.
         :return: the output of different stages.
         """
-        _, h, w, _ = backend.int_shape(inputs)
 
-        blocks = self.params
-        dilation = self.dilation
-        bn_axis = 3 if backend.image_data_format() == 'channels_last' else 1
-
-        x = layers.ZeroPadding2D(padding=((3, 3), (3, 3)))(inputs)
-        x = layers.Conv2D(64, 3, strides=2, use_bias=False, name='conv1/conv')(x)
-        x = layers.BatchNormalization(
-            axis=bn_axis, epsilon=1.001e-5, name='conv1/bn')(x)
-        x = layers.Activation('relu', name='conv1/relu')(x)
-        x = layers.ZeroPadding2D(padding=((1, 1), (1, 1)))(x)
-        x = layers.MaxPooling2D(3, strides=2, name='pool1')(x)
+        # stem
+        x = self._conv3x3(inputs,   64, 'stem', '1', 2)
+        x = self._conv3x3(x,  64, 'stem', '2', 1)
+        x = self._conv3x3(x, 64, 'stem', '3', 1)
+        x = self._conv3x3(x, 128, 'stem', '4', 1)
+        x = self._conv3x3(x, 128, 'stem', '5', 2)
         c1 = x
 
-        x = self._osa_block(x, blocks[0], name='conv2')
-        x = self._transition_block(x, 0.5, name='pool2')
+        # stage2
+        x = self._OSA_stage(x,
+                            self.config_stage_ch[0],
+                            self.config_concat_ch[0],
+                            self.block_per_stage[0],
+                            self.layer_per_block,
+                            2)
         c2 = x
 
-        x = self._osa_block(x, blocks[1], name='conv3')
-        x = self._transition_block(x, 0.5, name='pool3', dilation=dilation[0])
+        # stage3
+        x = self._OSA_stage(x,
+                            self.config_stage_ch[1],
+                            self.config_concat_ch[1],
+                            self.block_per_stage[1],
+                            self.layer_per_block,
+                            3)
         c3 = x
 
-        x = self._osa_block(x, blocks[2], name='conv4', dilation=dilation[0])
-        x = self._transition_block(x, 0.5, name='pool4', dilation=dilation[1])
+        # stage4
+        x = self._OSA_stage(x,
+                            self.config_stage_ch[2],
+                            self.config_concat_ch[2],
+                            self.block_per_stage[2],
+                            self.layer_per_block,
+                            4)
         c4 = x
 
-        x = self._osa_block(x, blocks[3], name='conv5', dilation=dilation[1])
-        x = layers.BatchNormalization(
-            axis=bn_axis, epsilon=1.001e-5, name='bn')(x)
-        x = layers.Activation('relu', name='relu')(x)
+        # stage5
+        x = self._OSA_stage(x,
+                            self.config_stage_ch[3],
+                            self.config_concat_ch[3],
+                            self.block_per_stage[3],
+                            self.layer_per_block,
+                            5)
         c5 = x
 
         self.outputs = {'c1': c1,
