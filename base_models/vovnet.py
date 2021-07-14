@@ -92,7 +92,7 @@ class VovNet(object):
         xt = self._conv1x1(x, concat_ch, module_name, '_concat_')
 
         if identity:
-            xt = xt + identity_feat
+            xt = layers.add([xt, identity_feat])
 
         return xt
 
