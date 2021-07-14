@@ -106,7 +106,7 @@ class VovNet(object):
         if not stage_num == 2:
             x = layers.MaxPool2D(pool_size=3, strides=2, padding='same')(x)
 
-        module_name = f'OSA{stage_num}_1'
+        module_name = 'OSA' + str(stage_num) + '_1'
         x = self._OSA_model(x,
                             stage_ch,
                             concat_ch,
@@ -114,7 +114,7 @@ class VovNet(object):
                             module_name)
 
         for i in range(block_per_stage-1):
-            module_name = f'OSA{stage_num}_{i+2}'
+            module_name = 'OSA' + str(stage_num) + '_' + str(i+2)
             x = self._OSA_model(x,
                                 stage_ch,
                                 concat_ch,
