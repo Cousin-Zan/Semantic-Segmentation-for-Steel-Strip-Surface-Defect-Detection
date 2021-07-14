@@ -1,8 +1,8 @@
 # Amazing-Semantic-Segmentation
-[![python](https://img.shields.io/badge/Python-3.x-ff69b4.svg)](https://github.com/luyanger1799/Amazing-Semantic-Segmentation.git)
-[![tensorflow](https://img.shields.io/badge/Tensorflow-1.1x%7C2.0-brightgreen.svg)](https://github.com/luyanger1799/Amazing-Semantic-Segmentation.git)
-[![OpenCV](https://img.shields.io/badge/OpenCV-3.x%7C4.x-orange.svg)](https://github.com/luyanger1799/Amazing-Semantic-Segmentation.git)
-[![Apache](https://img.shields.io/badge/Apache-2.0-blue.svg)](https://github.com/luyanger1799/Amazing-Semantic-Segmentation.git)
+[![python](https://img.shields.io/badge/Python-3.x-ff69b4.svg)](https://gitee.com/Cousin_Zan/Amazing-Semantic-Segmentation.git)
+[![tensorflow](https://img.shields.io/badge/Tensorflow-1.1x%7C2.0-brightgreen.svg)](https://gitee.com/Cousin_Zan/Amazing-Semantic-Segmentation.git)
+[![OpenCV](https://img.shields.io/badge/OpenCV-3.x%7C4.x-orange.svg)](https://gitee.com/Cousin_Zan/Amazing-Semantic-Segmentation.git)
+[![Apache](https://img.shields.io/badge/Apache-2.0-blue.svg)](https://gitee.com/Cousin_Zan/Amazing-Semantic-Segmentation.git)
 
 >Amazing Semantic Segmentation on Tensorflow && Keras (include FCN, UNet, SegNet, PSPNet, PAN, RefineNet, DeepLabV3, DeepLabV3+, DenseASPP, BiSegNet ...)
 ***
@@ -91,7 +91,7 @@ need to modify some API or upgrade your tensorflow.
 ## Usage
 ### Download
 You can download the project through this command:  
-`git clone git@github.com:luyanger1799/Amazing-Semantic-Segmentation.git`  
+`git clone https://gitee.com/Cousin_Zan/Amazing-Semantic-Segmentation.git`  
 
 ### Training
 The project contains complete codes for training, testing and predicting. 
