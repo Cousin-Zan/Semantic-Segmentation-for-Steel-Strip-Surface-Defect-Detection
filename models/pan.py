@@ -27,7 +27,7 @@ class PAN(Network):
         base_model = 'ResNet50' if base_model is None else base_model
         assert version == 'PAN'
 
-        dilation = [1, 1] 
+        dilation = None 
         #no use dilation
         if base_model in ['VGG16',
                           'VGG19',
@@ -42,10 +42,13 @@ class PAN(Network):
                             'DenseNet152',
                             'DenseNet169',
                             'DenseNet201',
-                            'DenseNet264']:
+                            'DenseNet264',
+                            'VovNet101',
+                            'VovNet101_ese',
+                            'VovNet101_ac',
+                            'VovNet101_ese_ac',
+                            'VovNet152']:
             self.up_size = [(1, 1), (2, 2), (2, 2), (8, 8)]
-        elif base_model in ['VovNet101']:
-            self.up_size = [(2, 2), (2, 2), (2, 2), (4, 4)]
         elif base_model in ['Xception-DeepLab']:
             self.up_size = [(1, 1), (2, 2), (2, 2), (4, 4)]
         else:
