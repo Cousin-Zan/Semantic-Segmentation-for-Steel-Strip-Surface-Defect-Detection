@@ -55,9 +55,9 @@ class VovNet(object):
         osa = [x]
         for i in range(blocks):
             if self.version in ['VovNet101_ac', 'VovNet101_ese_ac']:
-                x = self._acb_block(x, 32, name=name + '_block' + str(i + 1), dilation=dilation)
+                x = self._acb_block(x, 48, name=name + '_block' + str(i + 1), dilation=dilation)
             else:
-                x = self._conv_block(x, 32, name=name + '_block' + str(i + 1), dilation=dilation)
+                x = self._conv_block(x, 48, name=name + '_block' + str(i + 1), dilation=dilation)
             osa.append(x)
         output = Concatenate(out_size=(h, w), axis=bn_axis, name=name + '_concat')(osa)
 
