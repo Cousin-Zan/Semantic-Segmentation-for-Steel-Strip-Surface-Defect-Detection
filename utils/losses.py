@@ -12,12 +12,18 @@ backend = tf.keras.backend
 
 
 def categorical_crossentropy_with_logits(y_true, y_pred):
-    # compute cross entropy
-    cross_entropy = backend.categorical_crossentropy(y_true, y_pred, from_logits=True)
 
-    # compute loss
-    loss = backend.mean(backend.sum(cross_entropy, axis=[1, 2]))
-    return loss
+    y_pred = backend.softmax(y_pred)
+    y_pred = backend.clip(y_pred, backend.epsilon(), 1 - backend.epsilon())
+    weights = [0.2934, 9.5544, 2.7791, 7.8918]
+    cross_entropy = backend.mean(
+        - weights[0]*backend.sum(y_true[...,0] * backend.log(y_pred[...,0]))
+        - weights[1] * backend.sum(y_true[..., 1] * backend.log(y_pred[..., 1]))
+        - weights[2] * backend.sum(y_true[..., 2] * backend.log(y_pred[..., 2]))
+        - weights[3] * backend.sum(y_true[..., 3] * backend.log(y_pred[..., 3]))
+    )
+
+    return cross_entropy
 
 
 def focal_loss(alpha=0.25, gamma=2.0):

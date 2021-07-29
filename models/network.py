@@ -18,8 +18,10 @@ class Network(object):
             self.encoder = ResNet(base_model, dilation=dilation)
         elif base_model in ['DenseNet101', 'DenseNet121', 'DenseNet152', 'DenseNet169', 'DenseNet201', 'DenseNet264']:
             self.encoder = DenseNet(base_model, dilation=dilation)
-        elif base_model in ['VovNet101','VovNet101_ese', 'VovNet101_ac', 'VovNet101_ese_ac', 'VovNet152']:
-            self.encoder = VovNet(base_model, dilation=dilation)
+        elif base_model in ['VovNet57']:
+            self.encoder = VovNet(base_model)
+        elif base_model in ['VovNet57_ac']:
+            self.encoder = VovNet_ac(base_model)
         elif base_model in ['Xception', 'Xception-DeepLab']:
             self.encoder = Xception(base_model, dilation=dilation)
         elif base_model in ['MobileNetV1', 'MobileNetV2']:

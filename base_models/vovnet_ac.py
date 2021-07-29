@@ -14,16 +14,16 @@ layers = tf.keras.layers
 backend = tf.keras.backend
 
 
-class VovNet(object):
+class VovNet_ac(object):
     def __init__(self,
-                 version='VovNet101',
+                 version='VovNet57_ac',
                  **kwargs):
 
-        super(VovNet, self).__init__(**kwargs)
-        config_stage_ch = {'VovNet101': [128, 160, 192, 224]}
-        config_concat_ch = {'VovNet101': [256, 512, 768, 1024]}
-        block_per_stage = {'VovNet101': [1, 3, 9, 3]}
-        layer_per_block = {'VovNet101': 5}
+        super(VovNet_ac, self).__init__(**kwargs)
+        config_stage_ch = {'VovNet57_ac': [128, 160, 192, 224]}
+        config_concat_ch = {'VovNet57_ac': [256, 512, 768, 1024]}
+        block_per_stage = {'VovNet57_ac': [1, 1, 4, 3]}
+        layer_per_block = {'VovNet57_ac': 5}
         self.version = version
         assert version in config_stage_ch
         assert version in config_concat_ch
@@ -56,7 +56,6 @@ class VovNet(object):
 
     def _conv1x1(self, x, out_channels, model_name, postfix,
                  stride=1, kernel_size=1, padding='valid'):
-        """3x3 convolution with padding"""
 
         bn_axis = 3 if backend.image_data_format() == 'channels_last' else 1
 
@@ -74,6 +73,37 @@ class VovNet(object):
 
         return x1
 
+    def _acb_block(self, x, growth_rate, name, postfix):
+
+        bn_axis = 3 if backend.image_data_format() == 'channels_last' else 1
+        branch_1 = layers.Conv2D(growth_rate, (1, 3),
+                                 padding='same',
+                                 use_bias=False,
+                                 name=name + postfix + '_1_conv')(x)
+        branch_2 = layers.Conv2D(growth_rate, 3,
+                                 padding='same',
+                                 use_bias=False,
+                                 name=name + postfix + '_2_conv')(x)
+        branch_3 = layers.Conv2D(growth_rate, (3, 1),
+                                 padding='same',
+                                 use_bias=False,
+                                 name=name + postfix + '_3_conv')(x)
+
+        branch_1 = layers.BatchNormalization(axis=bn_axis,
+                                             epsilon=1.001e-5,
+                                             name=name + postfix + '_1_bn')(branch_1)
+        branch_2 = layers.BatchNormalization(axis=bn_axis,
+                                             epsilon=1.001e-5,
+                                             name=name + postfix + '_2_bn')(branch_2)
+        branch_3 = layers.BatchNormalization(axis=bn_axis,
+                                             epsilon=1.001e-5,
+                                             name=name + postfix + '_3_bn')(branch_3)
+
+        master = layers.add([branch_1, branch_2, branch_3])
+        output = layers.Activation('relu', name=name + postfix + '_0_relu')(master)
+
+        return output
+
     def _OSA_model(self, x,
                    stage_ch,
                    concat_ch,
@@ -85,7 +115,7 @@ class VovNet(object):
         output = []
         output.append(x)
         for i in range(layer_per_block):
-            x = self._conv3x3(x, stage_ch, module_name, str(i))
+            x = self._acb_block(x, stage_ch, module_name, str(i))
             output.append(x)
 
         x = tf.keras.layers.concatenate(output)
@@ -135,9 +165,8 @@ class VovNet(object):
         # stem
         x = self._conv3x3(inputs,   64, 'stem', '1', 2)
         x = self._conv3x3(x,  64, 'stem', '2', 1)
-        x = self._conv3x3(x, 64, 'stem', '3', 1)
-        x = self._conv3x3(x, 128, 'stem', '4', 1)
-        x = self._conv3x3(x, 128, 'stem', '5', 2)
+        x = self._conv3x3(x, 128, 'stem', '3', 1)
+
         c1 = x
 
         # stage2
@@ -149,6 +178,7 @@ class VovNet(object):
                             2)
         c2 = x
 
+
         # stage3
         x = self._OSA_stage(x,
                             self.config_stage_ch[1],
@@ -157,6 +187,7 @@ class VovNet(object):
                             self.layer_per_block,
                             3)
         c3 = x
+
 
         # stage4
         x = self._OSA_stage(x,

@@ -42,13 +42,10 @@ class PAN(Network):
                             'DenseNet169',
                             'DenseNet201',
                             'DenseNet264',
-                            'VovNet101',
-                            'VovNet101_ese',
-                            'VovNet101_ac',
-                            'VovNet101_ese_ac',
-                            'VovNet152',
                             'Xception-DeepLab']:
             self.up_size = [(1, 1), (1, 1), (1, 1), (8, 8)]
+        elif base_model in ['VovNet57', 'VovNet57_ac']:
+            self.up_size = [(2, 2), (2, 2), (2, 2), (2, 2)]
         else:
             raise ValueError('The base model \'{model}\' is not '
                              'supported in PAN.'.format(model=base_model))

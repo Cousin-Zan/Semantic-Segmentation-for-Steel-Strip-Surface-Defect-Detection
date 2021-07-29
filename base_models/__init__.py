@@ -4,3 +4,5 @@ from base_models.vgg import VGG
 from base_models.xception import Xception
 from base_models.mobilenet import MobileNet
 from base_models.vovnet import VovNet
+from base_models.vovnet_ac import VovNet_ac
+

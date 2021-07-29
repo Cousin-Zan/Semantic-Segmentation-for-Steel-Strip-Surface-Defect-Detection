@@ -96,7 +96,8 @@ class DenseNet(object):
                                        epsilon=1.001e-5,
                                        name=name + '_0_bn')(x)
         x1 = layers.Activation('relu', name=name + '_0_relu')(x1)
-        x1 = layers.Conv2D(4 * growth_rate, 1,
+        x1 = layers.Conv2D(4 * growth_rate, 3,
+                           padding='same',
                            use_bias=False,
                            name=name + '_1_conv')(x1)
         x1 = layers.BatchNormalization(axis=bn_axis, epsilon=1.001e-5,
@@ -107,6 +108,7 @@ class DenseNet(object):
                            use_bias=False,
                            name=name + '_2_conv',
                            dilation_rate=dilation)(x1)
+        x1 = layers.Dropout(0.2)(x1)
         x = Concatenate(out_size=(h, w), axis=bn_axis, name=name + '_concat')([x, x1])
         return x
 
