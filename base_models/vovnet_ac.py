@@ -150,7 +150,7 @@ class VovNet_ac(object):
                                 concat_ch,
                                 layer_per_block,
                                 module_name,
-                                identity=True)
+                                identity=False)
         return x
 
     def __call__(self, inputs, output_stages='c5', **kwargs):
