@@ -59,9 +59,11 @@ evaluated_classes = get_evaluated_classes(os.path.join(args.dataset, 'evaluated_
 num_classes = len(class_names)
 class_iou = dict()
 class_pa = dict()
+class_f1score = dict()
 for name in evaluated_classes:
     class_iou[name] = list()
     class_pa[name] = list()
+    class_f1score[name] = list()
 
 class_idx = dict(zip(class_names, range(num_classes)))
 
@@ -89,6 +91,12 @@ for i, (name1, name2) in enumerate(zip(test_label_names, prediction_names)):
         if tp + fp > 0:
             class_pa[eval_cls].append(tp / (tp + fp))
 
+        if tp + fp > 0 and tp + fn > 0:
+            precision = (tp / (tp + fp))
+            recall = (tp / (tp + fn))
+            if recall + precision > 0:
+                class_f1score[eval_cls].append((2 * recall * precision) / (recall + precision))
+
 print('\n****************************************')
 print('* The IoU of each class is as follows: *')
 print('****************************************')
@@ -102,13 +110,25 @@ print('**********************************************')
 print('Mean IoU: {mean_iou:.4f}'.format(mean_iou=np.mean(list(class_iou.values()))))
 
 print('\n****************************************')
-print('* The PA of each class is as follows: *')
+print('* The PA of each class is as follows:  *')
 print('****************************************')
 for eval_cls in evaluated_classes:
     class_pa[eval_cls] = np.mean(class_pa[eval_cls])
     print('{cls:}: {pa:.4f}'.format(cls=eval_cls, pa=class_pa[eval_cls]))
 
 print('\n**********************************************')
-print('* The Mean PA of all classes is as follows: *')
+print('* The Mean PA of all classes is as follows:  *')
 print('**********************************************')
 print('Mean PA: {mean_pa:.4f}'.format(mean_pa=np.mean(list(class_pa.values()))))
+
+print('\n****************************************')
+print('* The F1score of each class is as follows: *')
+print('****************************************')
+for eval_cls in evaluated_classes:
+    class_f1score[eval_cls] = np.mean(class_f1score[eval_cls])
+    print('{cls:}: {f1score:.4f}'.format(cls=eval_cls, f1score=class_f1score[eval_cls]))
+
+print('\n**********************************************')
+print('* The Mean F1score of all classes is as follows: *')
+print('**********************************************')
+print('Mean F1score: {mean_f1score:.4f}'.format(mean_f1score=np.mean(list(class_f1score.values()))))
