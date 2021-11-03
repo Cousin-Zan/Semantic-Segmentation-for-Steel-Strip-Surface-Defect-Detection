@@ -13,31 +13,48 @@ backend = tf.keras.backend
 
 def categorical_crossentropy_with_logits(labels, logits):
 
-    loss_weight = np.array([0.2934, 9.5544, 2.7791, 7.8918])
     labels = tf.cast(labels, tf.float32)
+ 
+    logits = tf.reshape(logits, (-1, 4)) #(h,w,c)==>(h*w,c)
+    epsilon = tf.constant(value=1e-10) #define epsilon
 
-    def weighted_loss(labels, logits, num_classes, head=None):
-        """re-weighting"""
-        with tf.name_scope('loss'):
-            logits = tf.reshape(logits, (-1, num_classes)) #(h,w,c)==>(h*w,c)
-            epsilon = tf.constant(value=1e-10) #define epsilon
+    logits = logits + epsilon  # prevent gradient lose
+    labels = tf.reshape(labels, (-1, 4)) #(h,w,c)==>(h*w,c)
+    softmax = tf.nn.softmax(logits) #activate logits with softmax
 
-            logits = logits + epsilon  # prevent gradient lose
-            labels = tf.reshape(labels, (-1, num_classes)) #(h,w,c)==>(h*w,c)
-            softmax = tf.nn.softmax(logits) #activate logits with softmax
+    cross_entropy = -tf.reduce_sum(labels * tf.log(softmax + epsilon), axis=[1])
+    #compute all classes of every pixel loss, and epsilon prevents loss nan or inf
 
-            cross_entropy = -tf.reduce_sum(tf.multiply(labels * tf.log(softmax + epsilon), head), axis=[1])
-            #compute all classes of every pixel loss, and epsilon prevents loss nan or inf
+    cross_entropy_mean = tf.reduce_mean(cross_entropy, name='cross_entropy')
+    #average all pixels loss
 
-            cross_entropy_mean = tf.reduce_mean(cross_entropy, name='cross_entropy')
-            #average all pixels loss
+    return cross_entropy_mean
 
-            tf.add_to_collection('losses', cross_entropy_mean)
+def dice_and_categorical_crossentropy_with_logits(labels, logits):
 
-            loss = tf.add_n(tf.get_collection('losses'), name='total_loss')
-        return loss
+    labels = tf.cast(labels, tf.float32)
+ 
+    logits = tf.reshape(logits, (-1, 4)) #(h,w,c)==>(h*w,c)
+    epsilon = tf.constant(value=1e-10) #define epsilon
 
-    return weighted_loss(labels, logits, num_classes=4, head=loss_weight)
+    logits = logits + epsilon  # prevent gradient lose
+    labels = tf.reshape(labels, (-1, 4)) #(h,w,c)==>(h*w,c)
+    softmax = tf.nn.softmax(logits) #activate logits with softmax
+
+    cross_entropy = -tf.reduce_sum(labels * tf.log(softmax + epsilon), axis=[1])
+    #compute all classes of every pixel loss, and epsilon prevents loss nan or inf
+
+    cross_entropy_mean = tf.reduce_mean(cross_entropy, name='cross_entropy')
+    #average all pixels loss
+
+    smooth = 1e-5
+    inse = tf.reduce_sum(labels * logits, axis=[1])
+    l = tf.reduce_sum(logits * logits, axis=[1])
+    r = tf.reduce_sum(labels * labels, axis=[1])
+    dice = (2. * inse + smooth) / (l + r + smooth)
+    dice_loss = 1. - tf.reduce_mean(dice)
+
+    return cross_entropy_mean + dice_loss
 
 
 def focal_loss(alpha=0.25, gamma=2.0):

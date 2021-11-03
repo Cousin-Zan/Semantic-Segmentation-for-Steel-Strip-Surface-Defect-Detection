@@ -34,7 +34,7 @@ parser.add_argument('--model', help='Choose the semantic segmentation methods.',
 parser.add_argument('--base_model', help='Choose the backbone model.', type=str, default=None)
 parser.add_argument('--dataset', help='The path of the dataset.', type=str, default='SD')
 parser.add_argument('--loss', help='The loss function for traing.', type=str, default=None,
-                    choices=['ce', 'focal_loss', 'miou_loss', 'self_balanced_focal_loss'])
+                    choices=['ce', 'dice_ce', 'focal_loss', 'miou_loss', 'self_balanced_focal_loss'])
 parser.add_argument('--num_classes', help='The number of classes to be segmented.', type=int, default=32)
 parser.add_argument('--random_crop', help='Whether to randomly crop the image.', type=str2bool, default=False)
 parser.add_argument('--crop_height', help='The height to crop the image.', type=int, default=256)
@@ -85,6 +85,7 @@ if args.weights is not None:
 
 # chose loss
 losses = {'ce': categorical_crossentropy_with_logits,
+          'dice_ce': dice_and_categorical_crossentropy_with_logits,
           'focal_loss': focal_loss(),
           'miou_loss': miou_loss(num_classes=args.num_classes),
           'self_balanced_focal_loss': self_balanced_focal_loss()}

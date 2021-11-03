@@ -20,8 +20,8 @@ class Network(object):
             self.encoder = DenseNet(base_model, dilation=dilation)
         elif base_model in ['VovNet57']:
             self.encoder = VovNet(base_model)
-        elif base_model in ['VovNet57_ac']:
-            self.encoder = VovNet_ac(base_model)
+        elif base_model in ['VovNet57_shortcut']:
+            self.encoder = VovNet_shortcut(base_model)
         elif base_model in ['Xception', 'Xception-DeepLab']:
             self.encoder = Xception(base_model, dilation=dilation)
         elif base_model in ['MobileNetV1', 'MobileNetV2']:

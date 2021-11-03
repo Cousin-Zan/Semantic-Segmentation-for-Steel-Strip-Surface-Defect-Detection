@@ -44,7 +44,7 @@ class PAN(Network):
                             'DenseNet264',
                             'Xception-DeepLab']:
             self.up_size = [(1, 1), (1, 1), (1, 1), (8, 8)]
-        elif base_model in ['VovNet57', 'VovNet57_ac']:
+        elif base_model in ['VovNet57', 'VovNet57_shortcut']:
             self.up_size = [(2, 2), (2, 2), (2, 2), (2, 2)]
         else:
             raise ValueError('The base model \'{model}\' is not '
