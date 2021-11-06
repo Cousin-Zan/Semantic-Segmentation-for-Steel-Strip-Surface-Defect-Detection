@@ -1,5 +1,5 @@
 """
-The implementation of VovNet101/152 based on Tensorflow.
+The implementation of VovNet based on Tensorflow.
 Some codes are based on official tensorflow source codes.
 
 @Author: Zan Peng

@@ -9,3 +9,4 @@ from models.deeplab_v3_plus import DeepLabV3Plus
 from models.refinenet import RefineNet
 from models.denseaspp import DenseASPP
 from models.bisegnet import BiSegNet
+from models.cfnet import CFNET

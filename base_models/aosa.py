@@ -14,16 +14,16 @@ layers = tf.keras.layers
 backend = tf.keras.backend
 
 
-class VovNet(object):
+class AOSA(object):
     def __init__(self,
-                 version='VovNet57',
+                 version='AOSA',
                  **kwargs):
 
-        super(VovNet, self).__init__(**kwargs)
-        config_stage_ch = {'VovNet57': [128, 160, 192, 224]}
-        config_concat_ch = {'VovNet57': [256, 512, 768, 1024]}
-        block_per_stage = {'VovNet57': [1, 1, 4, 3]}
-        layer_per_block = {'VovNet57': 5}
+        super(AOSA, self).__init__(**kwargs)
+        config_stage_ch = {'AOSA': [128, 160, 192, 224]}
+        config_concat_ch = {'AOSA': [256, 512, 768, 1024]}
+        block_per_stage = {'AOSA': [1, 1, 4, 3]}
+        layer_per_block = {'AOSA': 5}
         self.version = version
         assert version in config_stage_ch
         assert version in config_concat_ch
@@ -102,8 +102,8 @@ class VovNet(object):
                    block_per_stage,
                    layer_per_block,
                    stage_num):
-        if not stage_num == 2:
-            x = layers.MaxPool2D(pool_size=3, strides=2, padding='same')(x)
+
+        x = layers.MaxPool2D(pool_size=3, strides=2, padding='same')(x)
 
         module_name = 'OSA' + str(stage_num) + '_1'
         x = self._OSA_model(x,
@@ -119,7 +119,7 @@ class VovNet(object):
                                 concat_ch,
                                 layer_per_block,
                                 module_name,
-                                identity=False)
+                                identity=True)
         return x
 
     def __call__(self, inputs, output_stages='c5', **kwargs):
@@ -132,9 +132,12 @@ class VovNet(object):
         """
 
         # stem
-        x = self._conv3x3(inputs,   64, 'stem', '1', 2)
+        x = self._conv3x3(inputs,   64, 'stem', '1', 1)
+        d1 = x
         x = self._conv3x3(x,  64, 'stem', '2', 1)
+        d2 = x
         x = self._conv3x3(x, 128, 'stem', '3', 1)
+        d3 = x
 
         c1 = x
 
@@ -177,7 +180,10 @@ class VovNet(object):
                             5)
         c5 = x
 
-        self.outputs = {'c1': c1,
+        self.outputs = {'d1': d1,
+                        'd2': d2,
+                        'd3': d3,
+                        'c1': c1,
                         'c2': c2,
                         'c3': c3,
                         'c4': c4,

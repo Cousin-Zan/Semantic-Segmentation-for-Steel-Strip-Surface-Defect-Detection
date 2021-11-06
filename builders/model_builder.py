@@ -26,7 +26,8 @@ def builder(num_classes, input_size=(256, 256), model='SegNet', base_model=None)
               'DenseASPP': DenseASPP,
               'DeepLabV3': DeepLabV3,
               'DeepLabV3Plus': DeepLabV3Plus,
-              'BiSegNet': BiSegNet}
+              'BiSegNet': BiSegNet,
+              'CFNET' : CFNET}
 
     assert model in models
 

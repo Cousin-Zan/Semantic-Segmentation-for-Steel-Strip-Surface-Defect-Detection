@@ -26,6 +26,8 @@ class Network(object):
             self.encoder = Xception(base_model, dilation=dilation)
         elif base_model in ['MobileNetV1', 'MobileNetV2']:
             self.encoder = MobileNet(base_model, dilation=dilation)
+        elif base_model in ['AOSA']:
+            self.encoder = AOSA(base_model)
         else:
             raise ValueError('The base model {model} is not in the '
                              'supported model list!!!'.format(model=base_model))

@@ -5,4 +5,5 @@ from base_models.xception import Xception
 from base_models.mobilenet import MobileNet
 from base_models.vovnet import VovNet
 from base_models.vovnet_shortcut import VovNet_shortcut
+from base_models.aosa import AOSA
 
