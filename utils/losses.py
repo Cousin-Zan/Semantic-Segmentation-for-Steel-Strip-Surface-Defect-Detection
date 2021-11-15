@@ -2,6 +2,7 @@
 The implementation of some losses based on Tensorflow.
 
 @Author: Yang Lu
+@Author: Zan Peng
 @Github: https://github.com/luyanger1799
 @Project: https://github.com/luyanger1799/amazing-semantic-segmentation
 
@@ -10,6 +11,15 @@ import tensorflow as tf
 import numpy as np
 backend = tf.keras.backend
 
+def mix_loss(labels, logits):
+    return categorical_crossentropy_with_logits(labels, logits) + ssim_loss(labels, logits) + miou_loss(labels, logits)
+
+def ssim_loss(labels, logits):
+
+    logits = backend.softmax(logits)
+    total_loss = 1 - tf.image.ssim(tf.cast(labels, tf.float32), tf.cast(logits, tf.float32), max_val = 1)
+
+    return total_loss
 
 def categorical_crossentropy_with_logits(labels, logits):
 
@@ -69,25 +79,18 @@ def focal_loss(alpha=0.25, gamma=2.0):
     return loss
 
 
-def miou_loss(weights=None, num_classes=2):
-    if weights is not None:
-        assert len(weights) == num_classes
-        weights = tf.convert_to_tensor(weights)
-    else:
-        weights = tf.convert_to_tensor([1.] * num_classes)
+def miou_loss(y_true, y_pred):
 
-    def loss(y_true, y_pred):
-        y_pred = backend.softmax(y_pred)
+    y_pred = backend.softmax(y_pred)
 
-        inter = y_pred * y_true
-        inter = backend.sum(inter, axis=[1, 2])
+    inter = y_pred * y_true
+    inter = backend.sum(inter, axis=[1, 2])
 
-        union = y_pred + y_true - (y_pred * y_true)
-        union = backend.sum(union, axis=[1, 2])
+    union = y_pred + y_true - (y_pred * y_true)
+    union = backend.sum(union, axis=[1, 2])
 
-        return -backend.mean((weights * inter) / (weights * union + 1e-8))
+    return 1-backend.mean(inter / (union + 1e-8))
 
-    return loss
 
 
 def self_balanced_focal_loss(alpha=3, gamma=2.0):

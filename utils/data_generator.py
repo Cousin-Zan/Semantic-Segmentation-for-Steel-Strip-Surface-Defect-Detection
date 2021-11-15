@@ -84,7 +84,8 @@ class DataIterator(Iterator):
             batch_x[i], batch_y[i] = image, label
             # get a pair of image and label
 
-        return batch_x, batch_y
+        return batch_x, [batch_y,batch_y]
+        # return batch_x, batch_y
 
 
 class ImageDataGenerator(object):

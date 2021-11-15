@@ -14,16 +14,16 @@ layers = tf.keras.layers
 backend = tf.keras.backend
 
 
-class AOSA(object):
+class OSA(object):
     def __init__(self,
-                 version='AOSA',
+                 version='OSA',
                  **kwargs):
 
-        super(AOSA, self).__init__(**kwargs)
-        config_stage_ch = {'AOSA': [128, 160, 192, 224]}
-        config_concat_ch = {'AOSA': [256, 512, 768, 1024]}
-        block_per_stage = {'AOSA': [1, 1, 4, 3]}
-        layer_per_block = {'AOSA': 5}
+        super(OSA, self).__init__(**kwargs)
+        config_stage_ch = {'OSA': [16, 16, 16, 16]}
+        config_concat_ch = {'OSA': [112, 208, 352, 544]}
+        block_per_stage = {'OSA': 1}
+        layer_per_block = {'OSA': [4, 6, 9, 12]}
         self.version = version
         assert version in config_stage_ch
         assert version in config_concat_ch
@@ -88,12 +88,12 @@ class AOSA(object):
             output.append(x)
 
         x = tf.keras.layers.concatenate(output)
-        xt = self._conv1x1(x, concat_ch, module_name, '_concat_')
 
         if identity:
-            xt = layers.add([xt, identity_feat])
+            identity_feat = self._conv1x1(identity_feat, concat_ch, module_name, '_shortcut_')
+            x = layers.add([x, identity_feat])
 
-        return xt
+        return x
 
     def _OSA_stage(self,
                    x,
@@ -105,15 +105,8 @@ class AOSA(object):
 
         x = layers.MaxPool2D(pool_size=3, strides=2, padding='same')(x)
 
-        module_name = 'OSA' + str(stage_num) + '_1'
-        x = self._OSA_model(x,
-                            stage_ch,
-                            concat_ch,
-                            layer_per_block,
-                            module_name)
-
-        for i in range(block_per_stage-1):
-            module_name = 'OSA' + str(stage_num) + '_' + str(i+2)
+        for i in range(block_per_stage):
+            module_name = 'OSA' + str(stage_num) + '_' + str(i+1)
             x = self._OSA_model(x,
                                 stage_ch,
                                 concat_ch,
@@ -132,12 +125,9 @@ class AOSA(object):
         """
 
         # stem
-        x = self._conv3x3(inputs,   64, 'stem', '1', 1)
-        d1 = x
-        x = self._conv3x3(x,  64, 'stem', '2', 1)
-        d2 = x
-        x = self._conv3x3(x, 128, 'stem', '3', 1)
-        d3 = x
+        x = self._conv3x3(inputs,   48, 'stem', '1', 1)
+        x = self._conv3x3(x,  48, 'stem', '2', 1)
+        x = self._conv3x3(x, 48, 'stem', '3', 1)
 
         c1 = x
 
@@ -145,8 +135,8 @@ class AOSA(object):
         x = self._OSA_stage(x,
                             self.config_stage_ch[0],
                             self.config_concat_ch[0],
-                            self.block_per_stage[0],
-                            self.layer_per_block,
+                            self.block_per_stage,
+                            self.layer_per_block[0],
                             2)
         c2 = x
 
@@ -155,8 +145,8 @@ class AOSA(object):
         x = self._OSA_stage(x,
                             self.config_stage_ch[1],
                             self.config_concat_ch[1],
-                            self.block_per_stage[1],
-                            self.layer_per_block,
+                            self.block_per_stage,
+                            self.layer_per_block[1],
                             3)
         c3 = x
 
@@ -165,8 +155,8 @@ class AOSA(object):
         x = self._OSA_stage(x,
                             self.config_stage_ch[2],
                             self.config_concat_ch[2],
-                            self.block_per_stage[2],
-                            self.layer_per_block,
+                            self.block_per_stage,
+                            self.layer_per_block[2],
                             4)
         c4 = x
 
@@ -175,15 +165,12 @@ class AOSA(object):
         x = self._OSA_stage(x,
                             self.config_stage_ch[3],
                             self.config_concat_ch[3],
-                            self.block_per_stage[3],
-                            self.layer_per_block,
+                            self.block_per_stage,
+                            self.layer_per_block[3],
                             5)
         c5 = x
 
-        self.outputs = {'d1': d1,
-                        'd2': d2,
-                        'd3': d3,
-                        'c1': c1,
+        self.outputs = {'c1': c1,
                         'c2': c2,
                         'c3': c3,
                         'c4': c4,

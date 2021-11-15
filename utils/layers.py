@@ -36,6 +36,30 @@ class GlobalAveragePooling2D(layers.GlobalAveragePooling2D):
         return config
 
 
+class GlobalMaxPooling2D(layers.GlobalMaxPooling2D):
+    def __init__(self, keep_dims=False, **kwargs):
+        super(GlobalMaxPooling2D, self).__init__(**kwargs)
+        self.keep_dims = keep_dims
+
+    def call(self, inputs):
+        if self.keep_dims is False:
+            return super(GlobalMaxPooling2D, self).call(inputs)
+        else:
+            return backend.max(inputs, axis=[1, 2], keepdims=True)
+
+    def compute_output_shape(self, input_shape):
+        if self.keep_dims is False:
+            return super(GlobalMaxPooling2D, self).compute_output_shape(input_shape)
+        else:
+            input_shape = tf.TensorShape(input_shape).as_list()
+            return tf.TensorShape([input_shape[0], 1, 1, input_shape[3]])
+
+    def get_config(self):
+        config = super(GlobalMaxPooling2D, self).get_config()
+        config['keep_dim'] = self.keep_dims
+        return config
+
+
 class Concatenate(layers.Concatenate):
     def __init__(self, out_size=None, axis=-1, name=None):
         super(Concatenate, self).__init__(axis=axis, name=name)

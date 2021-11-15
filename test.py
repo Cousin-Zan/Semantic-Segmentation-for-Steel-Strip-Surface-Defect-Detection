@@ -8,7 +8,7 @@ The file defines the testing process.
 """
 from utils.data_generator import ImageDataGenerator
 from utils.helpers import get_dataset_info, check_related_path
-from utils.losses import categorical_crossentropy_with_logits
+from utils.losses import *
 from utils.metrics import MeanIoU
 from builders import builder
 import tensorflow as tf
@@ -59,9 +59,12 @@ else:
         raise ValueError('The weights file does not exist in \'{path}\''.format(path=args.weights))
     net.load_weights(args.weights)
 
-# compile the model
+# compile the models
+loss = categorical_crossentropy_with_logits
+if args.model == 'CFNET':
+    loss = {'re_lu_16':mix_loss,'re_lu_27':mix_loss}
 net.compile(optimizer=tf.keras.optimizers.Adam(),
-            loss=categorical_crossentropy_with_logits,
+            loss=loss,
             metrics=[MeanIoU(args.num_classes)])
 # data generator
 test_gen = ImageDataGenerator()
