@@ -107,7 +107,7 @@ for i, name in enumerate(image_names):
     assert np.ndim(image) == 4
 
     # get the prediction
-    prediction = net.predict(image)
+    _, prediction = net.predict(image)
 
     if np.ndim(prediction) == 4:
         prediction = np.squeeze(prediction, axis=0)

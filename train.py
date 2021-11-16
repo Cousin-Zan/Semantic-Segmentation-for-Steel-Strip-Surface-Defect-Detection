@@ -163,8 +163,8 @@ valid_generator = valid_gen.flow(images_list=valid_image_names,
 model_checkpoint = tf.keras.callbacks.ModelCheckpoint(
     filepath=os.path.join(paths['checkpoints_path'],
                           '{model}_based_on_{base}_'.format(model=args.model, base=base_model) +
-                          'miou_{val_mean_io_u:04f}_' + 'ep_{epoch:02d}.h5'),
-    save_best_only=True, period=args.checkpoint_freq, monitor='val_mean_io_u', mode='max')
+                          'miou_{val_re_lu_27_mean_io_u:04f}_' + 'ep_{epoch:02d}.h5'),
+    save_best_only=True, period=args.checkpoint_freq, monitor='val_re_lu_27_mean_io_u', mode='max')
 # tensorboard setting
 tensorboard = tf.keras.callbacks.TensorBoard(log_dir=paths['logs_path'])
 # learning rate scheduler setting
