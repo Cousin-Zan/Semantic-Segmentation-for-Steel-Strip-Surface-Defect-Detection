@@ -4,6 +4,7 @@ The implementation of PAN (Pyramid Attention Networks) based on Tensorflow.
 @Author: Yang Lu
 @Author: Zan Peng
 @Github: https://github.com/luyanger1799
+@Github: https://github.com/Cousin-Zan
 @Project: https://github.com/luyanger1799/amazing-semantic-segmentation
 
 """

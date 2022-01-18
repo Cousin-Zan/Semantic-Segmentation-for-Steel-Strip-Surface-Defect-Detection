@@ -1,5 +1,5 @@
 """
-The implementation of VovNet based on Tensorflow.
+The implementation of VovNet101/152 based on Tensorflow.
 Some codes are based on official tensorflow source codes.
 
 @Author: Zan Peng
@@ -20,10 +20,10 @@ class VovNet(object):
                  **kwargs):
 
         super(VovNet, self).__init__(**kwargs)
-        config_stage_ch = {'VovNet57': [128, 160, 192, 224]}
-        config_concat_ch = {'VovNet57': [256, 512, 768, 1024]}
-        block_per_stage = {'VovNet57': [1, 1, 4, 3]}
-        layer_per_block = {'VovNet57': 5}
+        config_stage_ch = {'VovNet57': [16, 16, 16, 16]}
+        config_concat_ch = {'VovNet57': [112, 208, 352, 544]}
+        block_per_stage = {'VovNet57': 1}
+        layer_per_block = {'VovNet57': [4, 6, 9, 12]}
         self.version = version
         assert version in config_stage_ch
         assert version in config_concat_ch
@@ -88,12 +88,12 @@ class VovNet(object):
             output.append(x)
 
         x = tf.keras.layers.concatenate(output)
-        xt = self._conv1x1(x, concat_ch, module_name, '_concat_')
 
         if identity:
-            xt = layers.add([xt, identity_feat])
+            identity_feat = self._conv1x1(identity_feat, concat_ch, module_name, '_shortcut_')
+            x = layers.add([x, identity_feat])
 
-        return xt
+        return x
 
     def _OSA_stage(self,
                    x,
@@ -102,18 +102,11 @@ class VovNet(object):
                    block_per_stage,
                    layer_per_block,
                    stage_num):
-        if not stage_num == 2:
-            x = layers.MaxPool2D(pool_size=3, strides=2, padding='same')(x)
 
-        module_name = 'OSA' + str(stage_num) + '_1'
-        x = self._OSA_model(x,
-                            stage_ch,
-                            concat_ch,
-                            layer_per_block,
-                            module_name)
+        x = layers.MaxPool2D(pool_size=3, strides=2, padding='same')(x)
 
-        for i in range(block_per_stage-1):
-            module_name = 'OSA' + str(stage_num) + '_' + str(i+2)
+        for i in range(block_per_stage):
+            module_name = 'OSA' + str(stage_num) + '_' + str(i+1)
             x = self._OSA_model(x,
                                 stage_ch,
                                 concat_ch,
@@ -132,9 +125,9 @@ class VovNet(object):
         """
 
         # stem
-        x = self._conv3x3(inputs,   64, 'stem', '1', 2)
-        x = self._conv3x3(x,  64, 'stem', '2', 1)
-        x = self._conv3x3(x, 128, 'stem', '3', 1)
+        x = self._conv3x3(inputs, 48, 'stem', '1', 1)
+        x = self._conv3x3(x, 48, 'stem', '2', 1)
+        x = self._conv3x3(x, 48, 'stem', '3', 1)
 
         c1 = x
 
@@ -142,38 +135,35 @@ class VovNet(object):
         x = self._OSA_stage(x,
                             self.config_stage_ch[0],
                             self.config_concat_ch[0],
-                            self.block_per_stage[0],
-                            self.layer_per_block,
+                            self.block_per_stage,
+                            self.layer_per_block[0],
                             2)
         c2 = x
-
 
         # stage3
         x = self._OSA_stage(x,
                             self.config_stage_ch[1],
                             self.config_concat_ch[1],
-                            self.block_per_stage[1],
-                            self.layer_per_block,
+                            self.block_per_stage,
+                            self.layer_per_block[1],
                             3)
         c3 = x
-
 
         # stage4
         x = self._OSA_stage(x,
                             self.config_stage_ch[2],
                             self.config_concat_ch[2],
-                            self.block_per_stage[2],
-                            self.layer_per_block,
+                            self.block_per_stage,
+                            self.layer_per_block[2],
                             4)
         c4 = x
-
 
         # stage5
         x = self._OSA_stage(x,
                             self.config_stage_ch[3],
                             self.config_concat_ch[3],
-                            self.block_per_stage[3],
-                            self.layer_per_block,
+                            self.block_per_stage,
+                            self.layer_per_block[3],
                             5)
         c5 = x
 
